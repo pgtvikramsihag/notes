@@ -2,9 +2,6 @@
 <html>
 <head>
   <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PGT VIKRAM SIHAG NOTES HUB</title>
   <style>
     * {
       box-sizing: border-box;
@@ -864,8 +861,8 @@
               <div class="section-divider">Verification & Financial Details</div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="tmAadhar">ID Proof (12-Digit) <span class="req-star">*</span></label>
-                  <input type="text" id="tmAadhar" placeholder="12-digit numeric ID" pattern="[0-9]{12}" required>
+                  <label for="tmAadhar">Aadhar Number <span class="req-star">*</span></label>
+                  <input type="text" id="tmAadhar" placeholder="12-digit numeric Aadhar" pattern="[0-9]{12}" required>
                 </div>
                 <div class="form-group">
                   <label for="tmPan">PAN Card Number <span class="req-star">*</span></label>
@@ -902,7 +899,7 @@
                     <th>Role/Position</th>
                     <th>Contact (Phone/Gmail)</th>
                     <th>Address</th>
-                    <th>ID & PAN</th>
+                    <th>Aadhar & PAN</th>
                     <th>Bank & IFSC Details</th>
                     <th>Action</th>
                   </tr>
@@ -1035,44 +1032,10 @@
   </footer>
 
   <script>
-    // Google Apps Script Web App URL
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz0d3Em0LoXWCoEk-PQAXi-5l-bNcDYxoPo5kJqt0B0RMUzQZEffMSKJxK0h3r0h4wr3A/exec';
-
     let allNotes = [];
     let currentUserProfile = null;
     let isAdminUser = false;
     let pollingInterval = null;
-
-    /**
-     * Unified Fetch Helper replacing google.script.run
-     * Sends POST request with text/plain to prevent CORS preflight blocks on Google Apps Script
-     */
-    function callServer(action, args = [], extraPayload = {}, onSuccess = null, onFailure = null) {
-      fetch(WEB_APP_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify({
-          action: action,
-          args: args,
-          ...extraPayload
-        })
-      })
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('Network response was not ok (' + response.status + ')');
-        }
-        return response.json();
-      })
-      .then(function(data) {
-        if (onSuccess) onSuccess(data);
-      })
-      .catch(function(err) {
-        console.error('Fetch error in ' + action + ':', err);
-        if (onFailure) onFailure(err);
-      });
-    }
 
     window.addEventListener('DOMContentLoaded', function() {
       loadStats();
@@ -1126,7 +1089,9 @@
     }
 
     function loadStats() {
-      callServer('getStats', [], {}, updateFooterCounters);
+      google.script.run
+        .withSuccessHandler(updateFooterCounters)
+        .getStats();
     }
 
     function updateFooterCounters(stats) {
@@ -1256,14 +1221,11 @@
       loginBtn.innerText = 'Logging in...';
       loginBtn.disabled = true;
 
-      callServer(
-        'validateLogin',
-        [loginId, password],
-        { loginId: loginId, password: password },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           loginBtn.innerText = 'Log In';
           loginBtn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             sessionStorage.setItem('notes_user_id', res.loginId);
             sessionStorage.setItem('notes_is_admin', res.isAdmin ? 'true' : 'false');
             isAdminUser = res.isAdmin;
@@ -1274,18 +1236,18 @@
             startPolling();
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Invalid credentials.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           loginBtn.innerText = 'Log In';
           loginBtn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error logging in: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .validateLogin(loginId, password);
     }
 
     function handleRegister(event) {
@@ -1316,14 +1278,11 @@
       regBtn.innerText = 'Creating Account...';
       regBtn.disabled = true;
 
-      callServer(
-        'registerUser',
-        [userData],
-        { userData: userData },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           regBtn.innerText = 'Register Account';
           regBtn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
             msgEl.style.display = 'block';
@@ -1337,18 +1296,18 @@
             }, 1500);
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Registration failed.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           regBtn.innerText = 'Register Account';
           regBtn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error creating account: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .registerUser(userData);
     }
 
     function loadUserTickets() {
@@ -1356,11 +1315,8 @@
       const listEl = document.getElementById('userTicketsList');
       if (!loginId) return;
 
-      callServer(
-        'getUserTickets',
-        [loginId],
-        { loginId: loginId },
-        function(tickets) {
+      google.script.run
+        .withSuccessHandler(function(tickets) {
           if (!listEl) return;
           if (!tickets || tickets.length === 0) {
             listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No tickets or requests submitted yet.</div>';
@@ -1388,8 +1344,8 @@
               '</div>';
           });
           listEl.innerHTML = html;
-        }
-      );
+        })
+        .getUserTickets(loginId);
     }
 
     function loadUserDeletionStatus() {
@@ -1397,12 +1353,9 @@
       const box = document.getElementById('userDeletionStatusBox');
       if (!loginId || !box) return;
 
-      callServer(
-        'getUserTickets',
-        [loginId],
-        { loginId: loginId },
-        function(tickets) {
-          const delTickets = (tickets || []).filter(t => t.sheetName === 'Deletion_Requests' || (t.requestType && t.requestType.includes('Deletion')));
+      google.script.run
+        .withSuccessHandler(function(tickets) {
+          const delTickets = (tickets || []).filter(t => t.sheetName === 'Deletion_Requests' || t.requestType.includes('Deletion'));
           if (delTickets.length === 0) {
             box.style.display = 'none';
             box.innerHTML = '';
@@ -1428,22 +1381,19 @@
                 '<small style="color:#666;">Response Status/Time: ' + latest.respondedAt + '</small>' +
               '</div>' +
             '</div>';
-        }
-      );
+        })
+        .getUserTickets(loginId);
     }
 
     function fetchUserProfile(loginId) {
-      callServer(
-        'getUserProfile',
-        [loginId],
-        { loginId: loginId },
-        function(profile) {
+      google.script.run
+        .withSuccessHandler(function(profile) {
           if (profile) {
             currentUserProfile = profile;
             populateProfileForm();
           }
-        }
-      );
+        })
+        .getUserProfile(loginId);
     }
 
     function populateProfileForm() {
@@ -1513,32 +1463,29 @@
       btn.innerText = 'Submitting Edit Request...';
       btn.disabled = true;
 
-      callServer(
-        'requestProfileEdit',
-        [loginId, reason],
-        { loginId: loginId, reason: reason },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.innerText = 'Submit Request to Edit Profile';
           btn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
             msgEl.style.display = 'block';
             fetchUserProfile(loginId);
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Request failed.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           btn.innerText = 'Submit Request to Edit Profile';
           btn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error submitting edit request: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .requestProfileEdit(loginId, reason);
     }
 
     function handleSaveProfile(event) {
@@ -1564,14 +1511,11 @@
       btn.innerText = 'Saving Changes...';
       btn.disabled = true;
 
-      callServer(
-        'updateUserProfile',
-        [userData],
-        { userData: userData },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.innerText = 'Save Changes to Google Sheet (1 Edit)';
           btn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             currentUserProfile = res.profile;
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
@@ -1579,18 +1523,18 @@
             populateProfileForm();
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Could not update profile.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           btn.innerText = 'Save Changes to Google Sheet (1 Edit)';
           btn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error saving profile: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .updateUserProfile(userData);
     }
 
     function handleChangePassword(event) {
@@ -1615,14 +1559,11 @@
       btn.innerText = 'Updating Password...';
       btn.disabled = true;
 
-      callServer(
-        'changePassword',
-        [loginId, currPass, newPass],
-        { loginId: loginId, currPass: currPass, newPass: newPass },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.innerText = 'Update Password';
           btn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
             msgEl.style.display = 'block';
@@ -1631,18 +1572,18 @@
             document.getElementById('confirmPassInput').value = '';
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Password update failed.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           btn.innerText = 'Update Password';
           btn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error updating password: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .changePassword(loginId, currPass, newPass);
     }
 
     function handleDeleteRequest(event) {
@@ -1657,32 +1598,29 @@
       btn.innerText = 'Submitting Request...';
       btn.disabled = true;
 
-      callServer(
-        'requestAccountDeletion',
-        [loginId, reason],
-        { loginId: loginId, reason: reason },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.innerText = 'Submit Deletion Request (24 Hours Review)';
           btn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
             msgEl.style.display = 'block';
             loadUserDeletionStatus();
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Request failed.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           btn.innerText = 'Submit Deletion Request (24 Hours Review)';
           btn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error submitting deletion request: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .requestAccountDeletion(loginId, reason);
     }
 
     function handleAddTeamMember(event) {
@@ -1712,32 +1650,29 @@
       btn.innerText = 'Assigning Team Member...';
       btn.disabled = true;
 
-      callServer(
-        'addTeamMember',
-        [memberData],
-        { memberData: memberData },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.innerText = 'Assign Team Member to Google Sheet';
           btn.disabled = false;
-          if (res && res.success) {
+          if (res.success) {
             msgEl.className = 'msg-box msg-success';
             msgEl.innerText = res.message;
             msgEl.style.display = 'block';
             loadAdminDashboard();
           } else {
             msgEl.className = 'msg-box msg-error';
-            msgEl.innerText = (res && res.message) ? res.message : 'Failed to assign team member.';
+            msgEl.innerText = res.message;
             msgEl.style.display = 'block';
           }
-        },
-        function(err) {
+        })
+        .withFailureHandler(function(err) {
           btn.innerText = 'Assign Team Member to Google Sheet';
           btn.disabled = false;
           msgEl.className = 'msg-box msg-error';
           msgEl.innerText = 'Error adding team member: ' + err.message;
           msgEl.style.display = 'block';
-        }
-      );
+        })
+        .addTeamMember(memberData);
     }
 
     function showPortalUI(loginId, isAdmin) {
@@ -1795,19 +1730,24 @@
     }
 
     function onDownloadClick() {
-      callServer('trackDownload', [], {}, updateFooterCounters);
+      google.script.run
+        .withSuccessHandler(updateFooterCounters)
+        .trackDownload();
     }
 
     function loadNotesData() {
       document.getElementById('status').style.display = 'block';
       document.getElementById('status').innerText = 'Loading notes from spreadsheet...';
       
-      callServer('getNotesData', [], {}, onNotesLoaded, onNotesError);
+      google.script.run
+        .withSuccessHandler(onNotesLoaded)
+        .withFailureHandler(onNotesError)
+        .getNotesData();
     }
 
     function onNotesLoaded(notes) {
-      allNotes = Array.isArray(notes) ? notes : [];
-      populateFilterDropdowns(allNotes);
+      allNotes = notes;
+      populateFilterDropdowns(notes);
       applyFilters();
     }
 
@@ -1816,11 +1756,12 @@
     }
 
     function loadAdminDashboard() {
-      callServer('getAdminDashboardData', [], {}, onAdminDataLoaded);
+      google.script.run
+        .withSuccessHandler(onAdminDataLoaded)
+        .getAdminDashboardData();
     }
 
     function onAdminDataLoaded(data) {
-      if (!data) return;
       renderAdminEditsTable(data.editRequests || []);
       renderAdminDeletesTable(data.deletionRequests || []);
       renderAdminTeamTable(data.teamMembers || []);
@@ -1898,7 +1839,7 @@
           '<td><strong style="color:#1e3c72;">' + m.role + '</strong></td>' +
           '<td>' + m.phone + '<br><small>' + m.email + '</small></td>' +
           '<td>' + m.address + '</td>' +
-          '<td>ID: ' + (m.aadhar ? '[Redacted]' : 'N/A') + '<br>PAN: ' + m.pan + '</td>' +
+          '<td>Aadhar: ' + m.aadhar + '<br>PAN: ' + m.pan + '</td>' +
           '<td>' + m.bankDetails + '</td>' +
           '<td><button class="btn-action-small btn-delete" onclick="deleteTeamMember(\'' + m.memberId + '\')">Remove Member</button></td></tr>';
       });
@@ -1906,7 +1847,9 @@
     }
 
     function loadAdminNotesTable() {
-      callServer('getNotesData', [], {}, renderAdminNotesTable);
+      google.script.run
+        .withSuccessHandler(renderAdminNotesTable)
+        .getNotesData();
     }
 
     function renderAdminNotesTable(notes) {
@@ -1951,63 +1894,51 @@
       btn.disabled = true;
       msg.style.display = 'none';
 
-      callServer(
-        'adminAddNote',
-        [noteData],
-        { noteData: noteData },
-        function(res) {
+      google.script.run
+        .withSuccessHandler(function(res) {
           btn.disabled = false;
-          msg.className = (res && res.success) ? 'msg-box msg-success' : 'msg-box msg-error';
-          msg.innerText = (res && res.message) ? res.message : 'Operation completed.';
+          msg.className = res.success ? 'msg-box msg-success' : 'msg-box msg-error';
+          msg.innerText = res.message;
           msg.style.display = 'block';
-          if (res && res.success) {
+          if (res.success) {
             document.getElementById('adminAddNoteForm').reset();
             loadAdminNotesTable();
             loadNotesData();
           }
-        }
-      );
+        })
+        .adminAddNote(noteData);
     }
 
     function moveAdminNote(rowIndex, direction) {
-      callServer(
-        'adminMoveNote',
-        [rowIndex, direction],
-        { rowIndex: rowIndex, direction: direction },
-        function(res) {
-          if (res && !res.success) alert(res.message);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (!res.success) alert(res.message);
           loadAdminNotesTable();
           loadNotesData();
-        }
-      );
+        })
+        .adminMoveNote(rowIndex, direction);
     }
 
     function deleteAdminNote(rowIndex) {
       if (!confirm('Are you sure you want to delete note row #' + rowIndex + '?')) return;
-      callServer(
-        'adminDeleteNote',
-        [rowIndex],
-        { rowIndex: rowIndex },
-        function(res) {
-          if (res && res.message) alert(res.message);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
           loadAdminNotesTable();
           loadNotesData();
-        }
-      );
+        })
+        .adminDeleteNote(rowIndex);
     }
 
     function deleteTeamMember(memberId) {
       if (!confirm('Are you sure you want to remove team member ' + memberId + '?')) return;
 
-      callServer(
-        'adminDeleteTeamMember',
-        [memberId],
-        { memberId: memberId },
-        function(res) {
-          if (res && res.message) alert(res.message);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
           loadAdminDashboard();
-        }
-      );
+        })
+        .adminDeleteTeamMember(memberId);
     }
 
     function processReq(reqType, ticketId, action) {
@@ -2028,15 +1959,12 @@
         if (!confirm('Approve deletion and permanently remove user for ticket ' + ticketId + ' from Google Sheets?')) return;
       }
 
-      callServer(
-        'adminProcessRequest',
-        [reqType, ticketId, action, customNote],
-        { reqType: reqType, ticketId: ticketId, subAction: action, customNote: customNote },
-        function(res) {
-          if (res && res.message) alert(res.message);
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
           loadAdminDashboard();
-        }
-      );
+        })
+        .adminProcessRequest(reqType, ticketId, action, customNote);
     }
 
     function populateFilterDropdowns(notes) {
