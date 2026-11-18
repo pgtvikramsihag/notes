@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f4f6f8;
+      color: #333333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #ffffff;
+      padding: 28px 20px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+    header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+    .user-bar {
+      display: none;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: #ffffff;
+      color: #1e3c72;
+    }
+    .nav-admin-btn {
+      background: #ff9800;
+      color: #ffffff;
+      border: 1px solid #f57c00;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .nav-admin-btn:hover, .nav-admin-btn.active {
+      background: #e65100;
+      color: #ffffff;
+    }
+    .btn-logout {
+      background: #d32f2f;
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .btn-logout:hover {
+      background: #b71c1c;
+    }
+    .main-wrapper {
+      flex: 1;
+      padding-bottom: 40px;
+    }
+    .auth-card, .profile-card {
+      max-width: 520px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 28px 24px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    .admin-card-large {
+      max-width: 1100px;
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #666666;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+    .tab-btn.active {
+      color: #1e3c72;
+      border-color: #1e3c72;
+    }
+    /* Left Sidebar Navigation Layout for Admin Panel */
+    .admin-layout {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      align-items: flex-start;
+    }
+    @media (max-width: 768px) {
+      .admin-layout {
+        flex-direction: column;
+      }
+      .admin-sidebar {
+        width: 100% !important;
+      }
+    }
+    .admin-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #333333;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .admin-nav-item:hover {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    .admin-nav-item.active {
+      background: #1e3c72;
+      color: #ffffff;
+    }
+    .admin-main-content {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+    }
+    .section-divider {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: #1e3c72;
+      margin: 18px 0 10px 0;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 4px;
+    }
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .req-star {
+      color: #d32f2f;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: #2a5298;
+    }
+    .form-group input:disabled {
+      background-color: #f0f0f0;
+      cursor: not-allowed;
+      color: #777777;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    .form-row .form-group {
+      flex: 1;
+    }
+    .btn-primary {
+      width: 100%;
+      background-color: #2a5298;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn-primary:hover {
+      background-color: #1e3c72;
+    }
+    .btn-primary:disabled {
+      background-color: #a0b2d6;
+      cursor: not-allowed;
+    }
+    .btn-action-small {
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 2px;
+      display: inline-block;
+    }
+    .btn-approve {
+      background-color: #2e7d32;
+      color: white;
+    }
+    .btn-approve:hover {
+      background-color: #1b5e20;
+    }
+    .btn-reject {
+      background-color: #d32f2f;
+      color: white;
+    }
+    .btn-reject:hover {
+      background-color: #b71c1c;
+    }
+    .btn-modify {
+      background-color: #0277bd;
+      color: white;
+    }
+    .btn-modify:hover {
+      background-color: #01579b;
+    }
+    .btn-ask {
+      background-color: #ed6c02;
+      color: white;
+    }
+    .btn-ask:hover {
+      background-color: #e65100;
+    }
+    .btn-dispose {
+      background-color: #757575;
+      color: white;
+    }
+    .btn-dispose:hover {
+      background-color: #424242;
+    }
+    .btn-delete {
+      background-color: #c62828;
+      color: white;
+    }
+    .btn-delete:hover {
+      background-color: #8e0000;
+    }
+    .btn-danger {
+      width: 100%;
+      background-color: #d32f2f;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn-danger:hover {
+      background-color: #b71c1c;
+    }
+    .msg-box {
+      font-size: 0.85rem;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+      padding: 10px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
+    .msg-error {
+      color: #d32f2f;
+      background-color: #ffebee;
+    }
+    .msg-success {
+      color: #2e7d32;
+      background-color: #e8f5e9;
+    }
+    .notice-box {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+    .ticket-card {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 6px;
+    }
+    .ticket-id {
+      font-weight: 700;
+      color: #1e3c72;
+      font-size: 0.95rem;
+    }
+    .ticket-status {
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+    .admin-response-box {
+      background: #f0f7ff;
+      border-left: 4px solid #2a5298;
+      padding: 10px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 10px;
+      font-size: 0.88rem;
+    }
+    .container {
+      display: none;
+      max-width: 1100px;
+      margin: 20px auto 0 auto;
+      padding: 0 20px;
+    }
+    .filter-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1 1 300px;
+    }
+    select, input[type="text"] {
+      padding: 10px 14px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      flex: 1;
+      min-width: 140px;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: #2a5298;
+    }
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .note-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .note-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-class {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+    .badge-subject {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    .badge-topic {
+      background-color: #f3e5f5;
+      color: #7b1fa2;
+    }
+    .note-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      display: inline-block;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-view {
+      background-color: #ffffff;
+      color: #2a5298;
+      border: 1.5px solid #2a5298;
+    }
+    .btn-view:hover {
+      background-color: #eef3fc;
+    }
+    .btn-download {
+      background-color: #2a5298;
+      color: #ffffff;
+      border: 1.5px solid #2a5298;
+    }
+    .btn-download:hover {
+      background-color: #1e3c72;
+      border-color: #1e3c72;
+    }
+    .status-msg {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.1rem;
+      color: #555555;
+      background: #ffffff;
+      border-radius: 8px;
+      margin-top: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.85rem;
+    }
+    .admin-table th, .admin-table td {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .admin-table th {
+      background-color: #1e3c72;
+      color: white;
+    }
+    footer {
+      background-color: #1e3c72;
+      color: #ffffff;
+      text-align: center;
+      padding: 16px 20px;
+      font-size: 0.95rem;
+      border-top: 3px solid #2a5298;
+    }
+    .counter-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin: 0 8px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>PGT VIKRAM SIHAG NOTES HUB</h1>
+    <p>View & Download Notes for Classes 1st to 12th</p>
+    <div id="userBar" class="user-bar">
+      <span>Logged in: <strong id="userDisplay"></strong></span>
+      <button id="navAdminBtn" class="nav-admin-btn" style="display:none;" onclick="switchDashboardTab('admin')">🛡 Admin Panel</button>
+      <button id="navNotesBtn" class="nav-btn active" onclick="switchDashboardTab('notes')">📚 Notes Portal</button>
+      <button id="navTicketsBtn" class="nav-btn" onclick="switchDashboardTab('userTickets')">📩 My Tickets & Responses</button>
+      <button id="navEditProfileBtn" class="nav-btn" onclick="switchDashboardTab('editProfile')">✏ Edit Details</button>
+      <button id="navPassBtn" class="nav-btn" onclick="switchDashboardTab('changePass')">🔑 Change Password</button>
+      <button id="navDelBtn" class="nav-btn" onclick="switchDashboardTab('deleteAccount')">🗑 Account Deletion</button>
+      <button class="btn-logout" onclick="handleLogout()">Log Out</button>
+    </div>
+  </header>
+
+  <div class="main-wrapper">
+    <!-- Authentication Card (Login & Register) -->
+    <div id="authCard" class="auth-card">
+      <div class="auth-tabs">
+        <button id="loginTabBtn" class="tab-btn active" onclick="switchAuthTab('login')">Log In</button>
+        <button id="registerTabBtn" class="tab-btn" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginIdInput">Log In ID <span class="req-star">*</span></label>
+          <input type="text" id="loginIdInput" placeholder="User ID e.g. PGTVS101 or Admin 845726" required>
+        </div>
+        <div class="form-group">
+          <label for="passwordInput">Password <span class="req-star">*</span></label>
+          <input type="password" id="passwordInput" placeholder="Enter password" required>
+        </div>
+        <button type="submit" id="loginBtn" class="btn-primary">Log In</button>
+        <div id="loginMsg" class="msg-box msg-error"></div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="section-divider">Account Credentials (Compulsory)</div>
+        <div class="form-group">
+          <label for="regIdInput">Log In ID <span class="req-star">*</span></label>
+          <input type="text" id="regIdInput" value="PGTVS" placeholder="e.g. PGTVS101" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassInput">Password <span class="req-star">*</span></label>
+          <input type="password" id="regPassInput" placeholder="Enter password" required>
+        </div>
+
+        <div class="section-divider">Personal Details (Compulsory)</div>
+        <div class="form-group">
+          <label for="regFullName">Full Name <span class="req-star">*</span></label>
+          <input type="text" id="regFullName" placeholder="e.g. Vikram Sihag" required>
+        </div>
+        <div class="form-group">
+          <label for="regFatherName">Father's Name <span class="req-star">*</span></label>
+          <input type="text" id="regFatherName" placeholder="e.g. Father Name" required>
+        </div>
+
+        <div class="section-divider">Contact Details (Compulsory)</div>
+        <div class="form-group">
+          <label for="regPhone">Phone Number <span class="req-star">*</span></label>
+          <input type="tel" id="regPhone" placeholder="10-digit number e.g. 9876543210" pattern="[6-9][0-9]{9}" title="Enter a valid 10-digit mobile number" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Gmail ID <span class="req-star">*</span></label>
+          <input type="email" id="regEmail" placeholder="e.g. username@gmail.com" pattern="[a-zA-Z0-9._%+-]+@gmail\.com" title="Must be a valid Gmail address ending in @gmail.com" required>
+        </div>
+
+        <div class="section-divider">Address Details (Compulsory)</div>
+        <div class="form-group">
+          <label for="regAddress">Address Line <span class="req-star">*</span></label>
+          <input type="text" id="regAddress" placeholder="House No, Street, Landmark" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="regCity">City <span class="req-star">*</span></label>
+            <input type="text" id="regCity" placeholder="City name" required>
+          </div>
+          <div class="form-group">
+            <label for="regState">State <span class="req-star">*</span></label>
+            <input type="text" id="regState" placeholder="State name" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="regPincode">Pincode <span class="req-star">*</span></label>
+          <input type="text" id="regPincode" placeholder="6-digit PIN e.g. 110001" pattern="[0-9]{6}" title="6-digit numeric Pincode" required>
+        </div>
+
+        <button type="submit" id="regBtn" class="btn-primary">Register Account</button>
+        <div id="regMsg" class="msg-box"></div>
+      </form>
+    </div>
+
+    <!-- User Raised Tickets & Admin Responses Card -->
+    <div id="userTicketsCard" class="profile-card" style="display: none; max-width: 720px;">
+      <h2>📩 My Raised Tickets & Linked Admin Responses</h2>
+      <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Review all your submitted requests and the connected responses from administration.</p>
+
+      <div id="userTicketsList">
+        <div style="text-align:center; padding:20px; color:#666;">Loading your tickets...</div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Card -->
+    <div id="editProfileCard" class="profile-card" style="display: none;">
+      <h2>Edit Account Details</h2>
+
+      <div id="editStatusNotice" class="notice-box">
+        🔒 <strong>Editing Locked:</strong> Profile details can only be edited once after submitting an edit request and receiving admin approval.
+      </div>
+
+      <div id="requestEditBox" style="margin-bottom: 20px;">
+        <div class="form-group">
+          <label for="editReason">Reason for Profile Edit Request</label>
+          <input type="text" id="editReason" placeholder="State why you need to update your details...">
+        </div>
+        <button type="button" id="submitEditReqBtn" class="btn-primary" onclick="handleRequestEditPermission()">Submit Request to Edit Profile</button>
+        <div id="reqPermissionMsg" class="msg-box"></div>
+      </div>
+
+      <form id="profileForm" onsubmit="handleSaveProfile(event)">
+        <div class="form-group">
+          <label>Log In ID</label>
+          <input type="text" id="editLoginId" disabled style="background:#eee; cursor:not-allowed;">
+        </div>
+
+        <div class="section-divider">Personal Details</div>
+        <div class="form-group">
+          <label for="editFullName">Full Name <span class="req-star">*</span></label>
+          <input type="text" id="editFullName" disabled required>
+        </div>
+        <div class="form-group">
+          <label for="editFatherName">Father's Name <span class="req-star">*</span></label>
+          <input type="text" id="editFatherName" disabled required>
+        </div>
+
+        <div class="section-divider">Contact Details</div>
+        <div class="form-group">
+          <label for="editPhone">Phone Number <span class="req-star">*</span></label>
+          <input type="tel" id="editPhone" pattern="[6-9][0-9]{9}" disabled required>
+        </div>
+        <div class="form-group">
+          <label for="editEmail">Gmail ID <span class="req-star">*</span></label>
+          <input type="email" id="editEmail" pattern="[a-zA-Z0-9._%+-]+@gmail\.com" disabled required>
+        </div>
+
+        <div class="section-divider">Address Details</div>
+        <div class="form-group">
+          <label for="editAddress">Address Line <span class="req-star">*</span></label>
+          <input type="text" id="editAddress" disabled required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editCity">City <span class="req-star">*</span></label>
+            <input type="text" id="editCity" disabled required>
+          </div>
+          <div class="form-group">
+            <label for="editState">State <span class="req-star">*</span></label>
+            <input type="text" id="editState" disabled required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editPincode">Pincode <span class="req-star">*</span></label>
+          <input type="text" id="editPincode" pattern="[0-9]{6}" disabled required>
+        </div>
+
+        <button type="submit" id="saveProfileBtn" class="btn-primary" disabled style="display:none;">Save Changes to Google Sheet (1 Edit)</button>
+        <div id="editProfileMsg" class="msg-box"></div>
+      </form>
+    </div>
+
+    <!-- Change Password Card -->
+    <div id="changePassCard" class="profile-card" style="display: none;">
+      <h2>Change Password</h2>
+      <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Your updated password will be recorded.</p>
+      
+      <form onsubmit="handleChangePassword(event)">
+        <div class="form-group">
+          <label for="currPassInput">Current Password <span class="req-star">*</span></label>
+          <input type="password" id="currPassInput" placeholder="Enter current password" required>
+        </div>
+        <div class="form-group">
+          <label for="newPassInput">New Password <span class="req-star">*</span></label>
+          <input type="password" id="newPassInput" placeholder="Enter new password" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmPassInput">Confirm New Password <span class="req-star">*</span></label>
+          <input type="password" id="confirmPassInput" placeholder="Re-enter new password" required>
+        </div>
+
+        <button type="submit" id="changePassBtn" class="btn-primary">Update Password</button>
+        <div id="changePassMsg" class="msg-box"></div>
+      </form>
+    </div>
+
+    <!-- Account Deletion Request Card -->
+    <div id="deleteAccountCard" class="profile-card" style="display: none;">
+      <h2 style="color:#d32f2f;">Request Account Deletion</h2>
+      <div class="notice-box">
+        ⚠ <strong>Notice:</strong> Submitting an account deletion request will register your request ticket. All account deletion requests will be reviewed by administration within <strong>24 hours</strong>.
+      </div>
+
+      <!-- Live Deletion Status & Connected Admin Response -->
+      <div id="userDeletionStatusBox" style="margin-bottom: 20px; display: none;"></div>
+
+      <form id="deleteAccountForm" onsubmit="handleDeleteRequest(event)">
+        <div class="form-group">
+          <label for="deleteReason">Reason for Account Deletion</label>
+          <textarea id="deleteReason" rows="3" placeholder="Please state your reason for closing your account..."></textarea>
+        </div>
+
+        <button type="submit" id="deleteBtn" class="btn-danger">Submit Deletion Request (24 Hours Review)</button>
+        <div id="deleteMsg" class="msg-box"></div>
+      </form>
+    </div>
+
+    <!-- Admin Panel Card with Left Sidebar Navigation -->
+    <div id="adminCard" class="profile-card admin-card-large" style="display: none;">
+      <h2>🛡 Site Administrator Panel</h2>
+      <p style="font-size:0.88rem; color:#555; margin-bottom:15px;">Admin Control Management — Access request approvals, staff assignments, and notes management from the left navigation bar.</p>
+
+      <div class="admin-layout">
+        <!-- Left Sidebar Navigation -->
+        <div class="admin-sidebar">
+          <button id="adminNavEditsBtn" class="admin-nav-item active" onclick="switchAdminSubTab('edits')">✏ Profile Edit Requests</button>
+          <button id="adminNavDeletesBtn" class="admin-nav-item" onclick="switchAdminSubTab('deletes')">🗑 Deletion Requests</button>
+          <button id="adminNavTeamBtn" class="admin-nav-item" onclick="switchAdminSubTab('team')">👥 Assign & Manage Team</button>
+          <button id="adminNavNotesBtn" class="admin-nav-item" onclick="switchAdminSubTab('notes')">📚 Add & Manage Notes</button>
+        </div>
+
+        <!-- Right Main Panel Content -->
+        <div class="admin-main-content">
+          <!-- Admin: Edit Requests -->
+          <div id="adminSectionEdits">
+            <div class="section-divider">User Profile Edit Requests & Responses</div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>User ID & Name</th>
+                    <th>Gmail ID</th>
+                    <th>Request Details</th>
+                    <th>Status & Admin Response</th>
+                    <th>Admin Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminEditsTableBody">
+                  <tr><td colspan="6" style="text-align:center;">Loading edit requests...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Admin: Deletion Requests -->
+          <div id="adminSectionDeletes" style="display:none;">
+            <div class="section-divider">Account Deletion Requests & Responses (24h Review)</div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>User ID & Name</th>
+                    <th>Gmail ID</th>
+                    <th>Reason</th>
+                    <th>Status & Admin Response</th>
+                    <th>Admin Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminDeletesTableBody">
+                  <tr><td colspan="6" style="text-align:center;">Loading deletion requests...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Admin: Assign & Manage Team -->
+          <div id="adminSectionTeam" style="display:none;">
+            <div class="section-divider">Assign New Team Member / Manager</div>
+            <form onsubmit="handleAddTeamMember(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tmFullName">Full Name <span class="req-star">*</span></label>
+                  <input type="text" id="tmFullName" placeholder="e.g. Rahul Sharma" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmFatherName">Father's Name <span class="req-star">*</span></label>
+                  <input type="text" id="tmFatherName" placeholder="e.g. Suresh Sharma" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tmRole">Designated Role / Position <span class="req-star">*</span></label>
+                  <input type="text" id="tmRole" placeholder="e.g. Website Manager, Content Reviewer, Moderator" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmPhone">Phone Number <span class="req-star">*</span></label>
+                  <input type="tel" id="tmPhone" placeholder="10-digit number" pattern="[6-9][0-9]{9}" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="tmEmail">Gmail ID <span class="req-star">*</span></label>
+                <input type="email" id="tmEmail" placeholder="username@gmail.com" pattern="[a-zA-Z0-9._%+-]+@gmail\.com" required>
+              </div>
+
+              <div class="section-divider">Address Details</div>
+              <div class="form-group">
+                <label for="tmAddress">Address Line <span class="req-star">*</span></label>
+                <input type="text" id="tmAddress" placeholder="House No, Street, Colony" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tmCity">City <span class="req-star">*</span></label>
+                  <input type="text" id="tmCity" placeholder="City" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmState">State <span class="req-star">*</span></label>
+                  <input type="text" id="tmState" placeholder="State" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmPincode">Pincode <span class="req-star">*</span></label>
+                  <input type="text" id="tmPincode" placeholder="6 digits" pattern="[0-9]{6}" required>
+                </div>
+              </div>
+
+              <div class="section-divider">Verification & Financial Details</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tmAadhar">Aadhar Number <span class="req-star">*</span></label>
+                  <input type="text" id="tmAadhar" placeholder="12-digit numeric Aadhar" pattern="[0-9]{12}" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmPan">PAN Card Number <span class="req-star">*</span></label>
+                  <input type="text" id="tmPan" placeholder="10-char PAN e.g. ABCDE1234F" pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tmBankName">Bank Name <span class="req-star">*</span></label>
+                  <input type="text" id="tmBankName" placeholder="e.g. State Bank of India" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmBankAccount">Account Number <span class="req-star">*</span></label>
+                  <input type="text" id="tmBankAccount" placeholder="Bank Account Number" pattern="[0-9]{8,18}" required>
+                </div>
+                <div class="form-group">
+                  <label for="tmIfsc">IFSC Code <span class="req-star">*</span></label>
+                  <input type="text" id="tmIfsc" placeholder="e.g. SBIN0001234" pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}" required>
+                </div>
+              </div>
+
+              <button type="submit" id="addTmBtn" class="btn-primary">Assign Team Member to Google Sheet</button>
+              <div id="addTmMsg" class="msg-box"></div>
+            </form>
+
+            <div class="section-divider" style="margin-top:25px;">Assigned Team Members & Managers</div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Member ID</th>
+                    <th>Name & Father Name</th>
+                    <th>Role/Position</th>
+                    <th>Contact (Phone/Gmail)</th>
+                    <th>Address</th>
+                    <th>Aadhar & PAN</th>
+                    <th>Bank & IFSC Details</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminTeamTableBody">
+                  <tr><td colspan="8" style="text-align:center;">Loading team members...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Admin: Add & Manage Notes/Subjects -->
+          <div id="adminSectionNotes" style="display:none;">
+            <div class="section-divider">Add New Note / Subject for any Class</div>
+            <form id="adminAddNoteForm" onsubmit="handleAdminAddNote(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="anClass">Class <span class="req-star">*</span></label>
+                  <select id="anClass" required>
+                    <option value="">Select Class</option>
+                    <option value="1st">1st Class</option>
+                    <option value="2nd">2nd Class</option>
+                    <option value="3rd">3rd Class</option>
+                    <option value="4th">4th Class</option>
+                    <option value="5th">5th Class</option>
+                    <option value="6th">6th Class</option>
+                    <option value="7th">7th Class</option>
+                    <option value="8th">8th Class</option>
+                    <option value="9th">9th Class</option>
+                    <option value="10th">10th Class</option>
+                    <option value="11th">11th Class</option>
+                    <option value="12th">12th Class</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="anSubject">Subject Name <span class="req-star">*</span></label>
+                  <input type="text" id="anSubject" placeholder="e.g. Mathematics, Physics" required>
+                </div>
+                <div class="form-group">
+                  <label for="anTopic">Topic</label>
+                  <input type="text" id="anTopic" placeholder="e.g. Trigonometry">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="anTitle">Note Title <span class="req-star">*</span></label>
+                <input type="text" id="anTitle" placeholder="e.g. 10th Maths: Complete Formulas & Practice Set" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="anViewLink">View Link (Google Drive / PDF)</label>
+                  <input type="text" id="anViewLink" placeholder="https://drive.google.com/..." value="#">
+                </div>
+                <div class="form-group">
+                  <label for="anDownloadLink">Download Link</label>
+                  <input type="text" id="anDownloadLink" placeholder="https://drive.google.com/..." value="#">
+                </div>
+              </div>
+
+              <button type="submit" id="anBtn" class="btn-primary">Add Note to Google Sheet</button>
+              <div id="anMsg" class="msg-box"></div>
+            </form>
+
+            <div class="section-divider" style="margin-top:25px;">Manage & Re-place Existing Notes</div>
+            <div style="overflow-x:auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Topic</th>
+                    <th>Title</th>
+                    <th>Links</th>
+                    <th>Move / Place</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminNotesTableBody">
+                  <tr><td colspan="7" style="text-align:center;">Loading notes database...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Notes Container -->
+    <div id="mainContainer" class="container">
+      <div class="filter-card">
+        <div class="filter-group">
+          <select id="classFilter" onchange="onClassChange()">
+            <option value="">All Classes</option>
+            <option value="1st">1st Class</option>
+            <option value="2nd">2nd Class</option>
+            <option value="3rd">3rd Class</option>
+            <option value="4th">4th Class</option>
+            <option value="5th">5th Class</option>
+            <option value="6th">6th Class</option>
+            <option value="7th">7th Class</option>
+            <option value="8th">8th Class</option>
+            <option value="9th">9th Class</option>
+            <option value="10th">10th Class</option>
+            <option value="11th">11th Class</option>
+            <option value="12th">12th Class</option>
+          </select>
+
+          <select id="subjectFilter" onchange="onSubjectChange()">
+            <option value="">All Subjects</option>
+          </select>
+
+          <select id="topicFilter" onchange="applyFilters()">
+            <option value="">All Topics</option>
+          </select>
+        </div>
+
+        <input type="text" id="searchInput" placeholder="Search by title, subject, or topic..." oninput="applyFilters()">
+      </div>
+
+      <div id="status" class="status-msg">Loading notes from spreadsheet...</div>
+      <div id="notesContainer" class="notes-grid"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span>📊 Activity:</span>
+    <span class="counter-badge">🔑 Logins: <span id="loginCounter">0</span></span>
+    <span class="counter-badge">⬇ Downloads: <span id="downloadCounter">0</span></span>
+  </footer>
+
+  <script>
+    let allNotes = [];
+    let currentUserProfile = null;
+    let isAdminUser = false;
+    let pollingInterval = null;
+
+    window.addEventListener('DOMContentLoaded', function() {
+      loadStats();
+      const savedUser = sessionStorage.getItem('notes_user_id');
+      const savedAdmin = sessionStorage.getItem('notes_is_admin') === 'true';
+      if (savedUser) {
+        isAdminUser = savedAdmin || savedUser === '845726';
+        showPortalUI(savedUser, isAdminUser);
+        loadNotesData();
+        if (!isAdminUser) {
+          fetchUserProfile(savedUser);
+        }
+        startPolling();
+      }
+    });
+
+    function startPolling() {
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = setInterval(pollActiveTab, 5000);
+    }
+
+    function stopPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    }
+
+    function pollActiveTab() {
+      const savedUser = sessionStorage.getItem('notes_user_id');
+      if (!savedUser) return;
+
+      const adminCard = document.getElementById('adminCard');
+      const userTicketsCard = document.getElementById('userTicketsCard');
+      const editProfileCard = document.getElementById('editProfileCard');
+      const deleteAccountCard = document.getElementById('deleteAccountCard');
+
+      if (adminCard && adminCard.style.display !== 'none' && isAdminUser) {
+        loadAdminDashboard();
+        const secNotes = document.getElementById('adminSectionNotes');
+        if (secNotes && secNotes.style.display !== 'none') {
+          loadAdminNotesTable();
+        }
+      } else if (userTicketsCard && userTicketsCard.style.display !== 'none') {
+        loadUserTickets();
+      } else if (editProfileCard && editProfileCard.style.display !== 'none') {
+        fetchUserProfile(savedUser);
+      } else if (deleteAccountCard && deleteAccountCard.style.display !== 'none') {
+        loadUserDeletionStatus();
+      }
+    }
+
+    function loadStats() {
+      google.script.run
+        .withSuccessHandler(updateFooterCounters)
+        .getStats();
+    }
+
+    function updateFooterCounters(stats) {
+      if (stats) {
+        document.getElementById('loginCounter').innerText = stats.totalLogins || 0;
+        document.getElementById('downloadCounter').innerText = stats.totalDownloads || 0;
+      }
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const regForm = document.getElementById('registerForm');
+      const loginTabBtn = document.getElementById('loginTabBtn');
+      const regTabBtn = document.getElementById('registerTabBtn');
+      const loginMsg = document.getElementById('loginMsg');
+      const regMsg = document.getElementById('regMsg');
+
+      loginMsg.style.display = 'none';
+      regMsg.style.display = 'none';
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        regForm.style.display = 'none';
+        loginTabBtn.classList.add('active');
+        regTabBtn.classList.remove('active');
+      } else {
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+        regTabBtn.classList.add('active');
+        loginTabBtn.classList.remove('active');
+      }
+    }
+
+    function switchDashboardTab(tab) {
+      const savedUser = sessionStorage.getItem('notes_user_id');
+      if (savedUser && savedUser !== '845726' && !isAdminUser) {
+        fetchUserProfile(savedUser);
+      }
+
+      const mainContainer = document.getElementById('mainContainer');
+      const userTicketsCard = document.getElementById('userTicketsCard');
+      const editProfileCard = document.getElementById('editProfileCard');
+      const changePassCard = document.getElementById('changePassCard');
+      const deleteAccountCard = document.getElementById('deleteAccountCard');
+      const adminCard = document.getElementById('adminCard');
+
+      document.getElementById('navNotesBtn').classList.remove('active');
+      document.getElementById('navTicketsBtn').classList.remove('active');
+      document.getElementById('navEditProfileBtn').classList.remove('active');
+      document.getElementById('navPassBtn').classList.remove('active');
+      document.getElementById('navDelBtn').classList.remove('active');
+      if (document.getElementById('navAdminBtn')) document.getElementById('navAdminBtn').classList.remove('active');
+
+      mainContainer.style.display = 'none';
+      userTicketsCard.style.display = 'none';
+      editProfileCard.style.display = 'none';
+      changePassCard.style.display = 'none';
+      deleteAccountCard.style.display = 'none';
+      adminCard.style.display = 'none';
+
+      if (tab === 'notes') {
+        mainContainer.style.display = 'block';
+        document.getElementById('navNotesBtn').classList.add('active');
+      } else if (tab === 'userTickets') {
+        userTicketsCard.style.display = 'block';
+        document.getElementById('navTicketsBtn').classList.add('active');
+        loadUserTickets();
+      } else if (tab === 'editProfile') {
+        editProfileCard.style.display = 'block';
+        document.getElementById('navEditProfileBtn').classList.add('active');
+        populateProfileForm();
+      } else if (tab === 'changePass') {
+        changePassCard.style.display = 'block';
+        document.getElementById('navPassBtn').classList.add('active');
+      } else if (tab === 'deleteAccount') {
+        deleteAccountCard.style.display = 'block';
+        document.getElementById('navDelBtn').classList.add('active');
+        loadUserDeletionStatus();
+      } else if (tab === 'admin') {
+        adminCard.style.display = 'block';
+        if (document.getElementById('navAdminBtn')) document.getElementById('navAdminBtn').classList.add('active');
+        loadAdminDashboard();
+      }
+    }
+
+    function switchAdminSubTab(subTab) {
+      const secEdits = document.getElementById('adminSectionEdits');
+      const secDeletes = document.getElementById('adminSectionDeletes');
+      const secTeam = document.getElementById('adminSectionTeam');
+      const secNotes = document.getElementById('adminSectionNotes');
+
+      document.getElementById('adminNavEditsBtn').classList.remove('active');
+      document.getElementById('adminNavDeletesBtn').classList.remove('active');
+      document.getElementById('adminNavTeamBtn').classList.remove('active');
+      if (document.getElementById('adminNavNotesBtn')) document.getElementById('adminNavNotesBtn').classList.remove('active');
+
+      secEdits.style.display = 'none';
+      secDeletes.style.display = 'none';
+      secTeam.style.display = 'none';
+      if (secNotes) secNotes.style.display = 'none';
+
+      if (subTab === 'edits') {
+        secEdits.style.display = 'block';
+        document.getElementById('adminNavEditsBtn').classList.add('active');
+      } else if (subTab === 'deletes') {
+        secDeletes.style.display = 'block';
+        document.getElementById('adminNavDeletesBtn').classList.add('active');
+      } else if (subTab === 'team') {
+        secTeam.style.display = 'block';
+        document.getElementById('adminNavTeamBtn').classList.add('active');
+      } else if (subTab === 'notes') {
+        if (secNotes) secNotes.style.display = 'block';
+        if (document.getElementById('adminNavNotesBtn')) document.getElementById('adminNavNotesBtn').classList.add('active');
+        loadAdminNotesTable();
+      }
+    }
+
+    function handleLogin(event) {
+      if (event) event.preventDefault();
+      
+      const loginId = document.getElementById('loginIdInput').value;
+      const password = document.getElementById('passwordInput').value;
+      const msgEl = document.getElementById('loginMsg');
+      const loginBtn = document.getElementById('loginBtn');
+
+      msgEl.style.display = 'none';
+      loginBtn.innerText = 'Logging in...';
+      loginBtn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          loginBtn.innerText = 'Log In';
+          loginBtn.disabled = false;
+          if (res.success) {
+            sessionStorage.setItem('notes_user_id', res.loginId);
+            sessionStorage.setItem('notes_is_admin', res.isAdmin ? 'true' : 'false');
+            isAdminUser = res.isAdmin;
+            currentUserProfile = res.profile;
+            if (res.stats) updateFooterCounters(res.stats);
+            showPortalUI(res.loginId, res.isAdmin);
+            loadNotesData();
+            startPolling();
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          loginBtn.innerText = 'Log In';
+          loginBtn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error logging in: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .validateLogin(loginId, password);
+    }
+
+    function handleRegister(event) {
+      if (event) event.preventDefault();
+
+      let regId = document.getElementById('regIdInput').value.trim();
+      if (regId && !regId.toUpperCase().startsWith('PGTVS')) {
+        regId = 'PGTVS' + regId;
+      }
+
+      const userData = {
+        loginId: regId,
+        password: document.getElementById('regPassInput').value,
+        fullName: document.getElementById('regFullName').value,
+        fatherName: document.getElementById('regFatherName').value,
+        phone: document.getElementById('regPhone').value,
+        email: document.getElementById('regEmail').value,
+        address: document.getElementById('regAddress').value,
+        city: document.getElementById('regCity').value,
+        state: document.getElementById('regState').value,
+        pincode: document.getElementById('regPincode').value
+      };
+
+      const msgEl = document.getElementById('regMsg');
+      const regBtn = document.getElementById('regBtn');
+
+      msgEl.style.display = 'none';
+      regBtn.innerText = 'Creating Account...';
+      regBtn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          regBtn.innerText = 'Register Account';
+          regBtn.disabled = false;
+          if (res.success) {
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            
+            document.getElementById('registerForm').reset();
+            document.getElementById('regIdInput').value = 'PGTVS';
+            
+            setTimeout(function() {
+              switchAuthTab('login');
+              document.getElementById('loginIdInput').value = userData.loginId;
+            }, 1500);
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          regBtn.innerText = 'Register Account';
+          regBtn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error creating account: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .registerUser(userData);
+    }
+
+    function loadUserTickets() {
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const listEl = document.getElementById('userTicketsList');
+      if (!loginId) return;
+
+      google.script.run
+        .withSuccessHandler(function(tickets) {
+          if (!listEl) return;
+          if (!tickets || tickets.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No tickets or requests submitted yet.</div>';
+            return;
+          }
+
+          let html = '';
+          tickets.forEach(function(t) {
+            html += 
+              '<div class="ticket-card">' +
+                '<div class="ticket-header">' +
+                  '<span class="ticket-id">🎫 Ticket ID: ' + t.ticketId + '</span>' +
+                  '<span class="ticket-status">' + t.status + '</span>' +
+                '</div>' +
+                '<div style="font-size:0.88rem; color:#444; margin-bottom:6px;">' +
+                  '<strong>Type:</strong> ' + t.requestType + ' | <strong>Date:</strong> ' + (t.requestDate || 'N/A') +
+                '</div>' +
+                '<div style="font-size:0.88rem; color:#444; margin-bottom:10px;">' +
+                  '<strong>Submitted Details:</strong> ' + t.reason +
+                '</div>' +
+                '<div class="admin-response-box">' +
+                  '<strong>🛡 Admin Connected Response:</strong> ' + t.adminResponse + '<br>' +
+                  '<small style="color:#666;">Responded Date/Status: ' + t.respondedAt + '</small>' +
+                '</div>' +
+              '</div>';
+          });
+          listEl.innerHTML = html;
+        })
+        .getUserTickets(loginId);
+    }
+
+    function loadUserDeletionStatus() {
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const box = document.getElementById('userDeletionStatusBox');
+      if (!loginId || !box) return;
+
+      google.script.run
+        .withSuccessHandler(function(tickets) {
+          const delTickets = (tickets || []).filter(t => t.sheetName === 'Deletion_Requests' || t.requestType.includes('Deletion'));
+          if (delTickets.length === 0) {
+            box.style.display = 'none';
+            box.innerHTML = '';
+            return;
+          }
+
+          const latest = delTickets[delTickets.length - 1];
+          box.style.display = 'block';
+          box.innerHTML = 
+            '<div class="ticket-card" style="border-left:4px solid #d32f2f;">' +
+              '<div class="ticket-header">' +
+                '<span class="ticket-id">🎫 Active Deletion Ticket: ' + latest.ticketId + '</span>' +
+                '<span class="ticket-status" style="background:#ffebee; color:#c62828;">' + latest.status + '</span>' +
+              '</div>' +
+              '<div style="font-size:0.88rem; color:#444; margin-bottom:6px;">' +
+                '<strong>Requested Date:</strong> ' + (latest.requestDate || 'N/A') +
+              '</div>' +
+              '<div style="font-size:0.88rem; color:#444; margin-bottom:10px;">' +
+                '<strong>Your Reason:</strong> ' + latest.reason +
+              '</div>' +
+              '<div class="admin-response-box">' +
+                '<strong>🛡 Connected Admin Response:</strong> ' + latest.adminResponse + '<br>' +
+                '<small style="color:#666;">Response Status/Time: ' + latest.respondedAt + '</small>' +
+              '</div>' +
+            '</div>';
+        })
+        .getUserTickets(loginId);
+    }
+
+    function fetchUserProfile(loginId) {
+      google.script.run
+        .withSuccessHandler(function(profile) {
+          if (profile) {
+            currentUserProfile = profile;
+            populateProfileForm();
+          }
+        })
+        .getUserProfile(loginId);
+    }
+
+    function populateProfileForm() {
+      const loginId = sessionStorage.getItem('notes_user_id');
+      document.getElementById('editLoginId').value = loginId || '';
+      
+      const noticeBox = document.getElementById('editStatusNotice');
+      const requestBox = document.getElementById('requestEditBox');
+      const saveBtn = document.getElementById('saveProfileBtn');
+      
+      const fields = ['editFullName', 'editFatherName', 'editPhone', 'editEmail', 'editAddress', 'editCity', 'editState', 'editPincode'];
+
+      if (currentUserProfile) {
+        document.getElementById('editFullName').value = currentUserProfile.fullName || '';
+        document.getElementById('editFatherName').value = currentUserProfile.fatherName || '';
+        document.getElementById('editPhone').value = currentUserProfile.phone || '';
+        document.getElementById('editEmail').value = currentUserProfile.email || '';
+        document.getElementById('editAddress').value = currentUserProfile.address || '';
+        document.getElementById('editCity').value = currentUserProfile.city || '';
+        document.getElementById('editState').value = currentUserProfile.state || '';
+        document.getElementById('editPincode').value = currentUserProfile.pincode || '';
+        
+        const status = currentUserProfile.editStatus || 'NONE';
+        
+        if (status === 'APPROVED' || isAdminUser) {
+          noticeBox.className = 'notice-box';
+          noticeBox.style.background = '#e8f5e9';
+          noticeBox.style.borderColor = '#c8e6c9';
+          noticeBox.style.color = '#2e7d32';
+          noticeBox.innerHTML = '✅ <strong>Edit Permission Approved!</strong> You have approved profile edit rights. Once saved, fields will update.';
+          
+          requestBox.style.display = 'none';
+          saveBtn.style.display = 'block';
+          saveBtn.disabled = false;
+          fields.forEach(id => document.getElementById(id).disabled = false);
+        } else if (status === 'PENDING') {
+          noticeBox.className = 'notice-box';
+          noticeBox.style.background = '#e1f5fe';
+          noticeBox.style.borderColor = '#b3e5fc';
+          noticeBox.style.color = '#0277bd';
+          noticeBox.innerHTML = '⏳ <strong>Request Pending:</strong> Your request to edit profile details is pending review by administration.';
+          
+          requestBox.style.display = 'none';
+          saveBtn.style.display = 'none';
+          fields.forEach(id => document.getElementById(id).disabled = true);
+        } else {
+          noticeBox.className = 'notice-box';
+          noticeBox.style.background = '#fff3cd';
+          noticeBox.style.borderColor = '#ffeeba';
+          noticeBox.style.color = '#856404';
+          noticeBox.innerHTML = '🔒 <strong>Editing Locked:</strong> You must submit an edit request and receive admin approval before editing your profile (valid for 1 edit).';
+          
+          requestBox.style.display = 'block';
+          saveBtn.style.display = 'none';
+          fields.forEach(id => document.getElementById(id).disabled = true);
+        }
+      }
+    }
+
+    function handleRequestEditPermission() {
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const reason = document.getElementById('editReason').value;
+      const msgEl = document.getElementById('reqPermissionMsg');
+      const btn = document.getElementById('submitEditReqBtn');
+
+      msgEl.style.display = 'none';
+      btn.innerText = 'Submitting Edit Request...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'Submit Request to Edit Profile';
+          btn.disabled = false;
+          if (res.success) {
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            fetchUserProfile(loginId);
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'Submit Request to Edit Profile';
+          btn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error submitting edit request: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .requestProfileEdit(loginId, reason);
+    }
+
+    function handleSaveProfile(event) {
+      if (event) event.preventDefault();
+      
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const userData = {
+        loginId: loginId,
+        fullName: document.getElementById('editFullName').value,
+        fatherName: document.getElementById('editFatherName').value,
+        phone: document.getElementById('editPhone').value,
+        email: document.getElementById('editEmail').value,
+        address: document.getElementById('editAddress').value,
+        city: document.getElementById('editCity').value,
+        state: document.getElementById('editState').value,
+        pincode: document.getElementById('editPincode').value
+      };
+
+      const msgEl = document.getElementById('editProfileMsg');
+      const btn = document.getElementById('saveProfileBtn');
+
+      msgEl.style.display = 'none';
+      btn.innerText = 'Saving Changes...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'Save Changes to Google Sheet (1 Edit)';
+          btn.disabled = false;
+          if (res.success) {
+            currentUserProfile = res.profile;
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            populateProfileForm();
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'Save Changes to Google Sheet (1 Edit)';
+          btn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error saving profile: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .updateUserProfile(userData);
+    }
+
+    function handleChangePassword(event) {
+      if (event) event.preventDefault();
+
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const currPass = document.getElementById('currPassInput').value;
+      const newPass = document.getElementById('newPassInput').value;
+      const confirmPass = document.getElementById('confirmPassInput').value;
+      const msgEl = document.getElementById('changePassMsg');
+      const btn = document.getElementById('changePassBtn');
+
+      msgEl.style.display = 'none';
+
+      if (newPass !== confirmPass) {
+        msgEl.className = 'msg-box msg-error';
+        msgEl.innerText = 'New password and confirm password do not match.';
+        msgEl.style.display = 'block';
+        return;
+      }
+
+      btn.innerText = 'Updating Password...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'Update Password';
+          btn.disabled = false;
+          if (res.success) {
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            document.getElementById('currPassInput').value = '';
+            document.getElementById('newPassInput').value = '';
+            document.getElementById('confirmPassInput').value = '';
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'Update Password';
+          btn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error updating password: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .changePassword(loginId, currPass, newPass);
+    }
+
+    function handleDeleteRequest(event) {
+      if (event) event.preventDefault();
+
+      const loginId = sessionStorage.getItem('notes_user_id');
+      const reason = document.getElementById('deleteReason').value;
+      const msgEl = document.getElementById('deleteMsg');
+      const btn = document.getElementById('deleteBtn');
+
+      msgEl.style.display = 'none';
+      btn.innerText = 'Submitting Request...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'Submit Deletion Request (24 Hours Review)';
+          btn.disabled = false;
+          if (res.success) {
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            loadUserDeletionStatus();
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'Submit Deletion Request (24 Hours Review)';
+          btn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error submitting deletion request: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .requestAccountDeletion(loginId, reason);
+    }
+
+    function handleAddTeamMember(event) {
+      if (event) event.preventDefault();
+
+      const memberData = {
+        fullName: document.getElementById('tmFullName').value,
+        fatherName: document.getElementById('tmFatherName').value,
+        role: document.getElementById('tmRole').value,
+        phone: document.getElementById('tmPhone').value,
+        email: document.getElementById('tmEmail').value,
+        address: document.getElementById('tmAddress').value,
+        city: document.getElementById('tmCity').value,
+        state: document.getElementById('tmState').value,
+        pincode: document.getElementById('tmPincode').value,
+        aadhar: document.getElementById('tmAadhar').value,
+        pan: document.getElementById('tmPan').value,
+        bankName: document.getElementById('tmBankName').value,
+        bankAccount: document.getElementById('tmBankAccount').value,
+        ifsc: document.getElementById('tmIfsc').value
+      };
+
+      const msgEl = document.getElementById('addTmMsg');
+      const btn = document.getElementById('addTmBtn');
+
+      msgEl.style.display = 'none';
+      btn.innerText = 'Assigning Team Member...';
+      btn.disabled = true;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.innerText = 'Assign Team Member to Google Sheet';
+          btn.disabled = false;
+          if (res.success) {
+            msgEl.className = 'msg-box msg-success';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+            loadAdminDashboard();
+          } else {
+            msgEl.className = 'msg-box msg-error';
+            msgEl.innerText = res.message;
+            msgEl.style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.innerText = 'Assign Team Member to Google Sheet';
+          btn.disabled = false;
+          msgEl.className = 'msg-box msg-error';
+          msgEl.innerText = 'Error adding team member: ' + err.message;
+          msgEl.style.display = 'block';
+        })
+        .addTeamMember(memberData);
+    }
+
+    function showPortalUI(loginId, isAdmin) {
+      document.getElementById('authCard').style.display = 'none';
+      document.getElementById('userBar').style.display = 'flex';
+      document.getElementById('userDisplay').innerText = loginId + (isAdmin ? ' (Admin)' : '');
+      
+      const adminBtn = document.getElementById('navAdminBtn');
+      const ticketsBtn = document.getElementById('navTicketsBtn');
+      const editProfileBtn = document.getElementById('navEditProfileBtn');
+      const passBtn = document.getElementById('navPassBtn');
+      const delBtn = document.getElementById('navDelBtn');
+
+      if (isAdmin) {
+        adminBtn.style.display = 'inline-block';
+        ticketsBtn.style.display = 'none';
+        editProfileBtn.style.display = 'none';
+        passBtn.style.display = 'none';
+        delBtn.style.display = 'none';
+      } else {
+        adminBtn.style.display = 'none';
+        ticketsBtn.style.display = 'inline-block';
+        editProfileBtn.style.display = 'inline-block';
+        passBtn.style.display = 'inline-block';
+        delBtn.style.display = 'inline-block';
+      }
+
+      switchDashboardTab(isAdmin ? 'admin' : 'notes');
+      startPolling();
+    }
+
+    function handleLogout() {
+      stopPolling();
+      sessionStorage.removeItem('notes_user_id');
+      sessionStorage.removeItem('notes_is_admin');
+      currentUserProfile = null;
+      isAdminUser = false;
+      document.getElementById('authCard').style.display = 'block';
+      document.getElementById('mainContainer').style.display = 'none';
+      document.getElementById('userTicketsCard').style.display = 'none';
+      document.getElementById('editProfileCard').style.display = 'none';
+      document.getElementById('changePassCard').style.display = 'none';
+      document.getElementById('deleteAccountCard').style.display = 'none';
+      document.getElementById('adminCard').style.display = 'none';
+      document.getElementById('userBar').style.display = 'none';
+      document.getElementById('loginIdInput').value = '';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('loginMsg').style.display = 'none';
+      document.getElementById('navTicketsBtn').style.display = 'inline-block';
+      document.getElementById('navEditProfileBtn').style.display = 'inline-block';
+      document.getElementById('navPassBtn').style.display = 'inline-block';
+      document.getElementById('navDelBtn').style.display = 'inline-block';
+      document.getElementById('navAdminBtn').style.display = 'none';
+      switchAuthTab('login');
+    }
+
+    function onDownloadClick() {
+      google.script.run
+        .withSuccessHandler(updateFooterCounters)
+        .trackDownload();
+    }
+
+    function loadNotesData() {
+      document.getElementById('status').style.display = 'block';
+      document.getElementById('status').innerText = 'Loading notes from spreadsheet...';
+      
+      google.script.run
+        .withSuccessHandler(onNotesLoaded)
+        .withFailureHandler(onNotesError)
+        .getNotesData();
+    }
+
+    function onNotesLoaded(notes) {
+      allNotes = notes;
+      populateFilterDropdowns(notes);
+      applyFilters();
+    }
+
+    function onNotesError(err) {
+      document.getElementById('status').innerText = 'Failed to load notes: ' + err.message;
+    }
+
+    function loadAdminDashboard() {
+      google.script.run
+        .withSuccessHandler(onAdminDataLoaded)
+        .getAdminDashboardData();
+    }
+
+    function onAdminDataLoaded(data) {
+      renderAdminEditsTable(data.editRequests || []);
+      renderAdminDeletesTable(data.deletionRequests || []);
+      renderAdminTeamTable(data.teamMembers || []);
+    }
+
+    function renderAdminEditsTable(requests) {
+      const tbody = document.getElementById('adminEditsTableBody');
+      if (!tbody) return;
+
+      if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No edit requests found.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      requests.forEach(req => {
+        html += '<tr><td><strong>' + req.ticketId + '</strong></td>' +
+          '<td>' + req.loginId + '<br><small>' + req.fullName + '</small></td>' +
+          '<td>' + req.email + '</td>' +
+          '<td>' + (req.reason || 'N/A') + '</td>' +
+          '<td><strong>Status:</strong> ' + req.status + '<br><small style="color:#1565c0;"><strong>Admin Resp:</strong> ' + (req.adminResponse || 'None') + '</small></td>' +
+          '<td>' +
+            '<button class="btn-action-small btn-approve" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'APPROVE\')">Approve</button>' +
+            '<button class="btn-action-small btn-reject" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'REJECT\')">Reject</button>' +
+            '<button class="btn-action-small btn-modify" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'MODIFY\')">Modify</button>' +
+            '<button class="btn-action-small btn-ask" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'ASK_DETAILS\')">Ask Details</button>' +
+            '<button class="btn-action-small btn-dispose" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'DISPOSE\')">Dispose</button>' +
+            '<button class="btn-action-small btn-delete" onclick="processReq(\'EDIT\', \'' + req.ticketId + '\', \'DELETE\')">Delete</button>' +
+          '</td></tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function renderAdminDeletesTable(requests) {
+      const tbody = document.getElementById('adminDeletesTableBody');
+      if (!tbody) return;
+
+      if (requests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No account deletion requests.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      requests.forEach(req => {
+        html += '<tr><td><strong>' + req.ticketId + '</strong></td>' +
+          '<td>' + req.loginId + '<br><small>' + req.fullName + '</small></td>' +
+          '<td>' + req.email + '</td>' +
+          '<td>' + (req.reason || 'N/A') + '</td>' +
+          '<td><strong>Status:</strong> ' + req.status + '<br><small style="color:#1565c0;"><strong>Admin Resp:</strong> ' + (req.adminResponse || 'None') + '</small></td>' +
+          '<td>' +
+            '<button class="btn-action-small btn-approve" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'APPROVE\')">Approve</button>' +
+            '<button class="btn-action-small btn-reject" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'REJECT\')">Reject</button>' +
+            '<button class="btn-action-small btn-modify" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'MODIFY\')">Modify</button>' +
+            '<button class="btn-action-small btn-ask" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'ASK_DETAILS\')">Ask Details</button>' +
+            '<button class="btn-action-small btn-dispose" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'DISPOSE\')">Dispose</button>' +
+            '<button class="btn-action-small btn-delete" onclick="processReq(\'DELETION\', \'' + req.ticketId + '\', \'DELETE\')">Delete</button>' +
+          '</td></tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function renderAdminTeamTable(members) {
+      const tbody = document.getElementById('adminTeamTableBody');
+      if (!tbody) return;
+
+      if (members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No assigned team members yet. Use the form above to add members.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      members.forEach(m => {
+        html += '<tr><td><strong>' + m.memberId + '</strong></td>' +
+          '<td>' + m.fullName + '<br><small>S/O: ' + m.fatherName + '</small></td>' +
+          '<td><strong style="color:#1e3c72;">' + m.role + '</strong></td>' +
+          '<td>' + m.phone + '<br><small>' + m.email + '</small></td>' +
+          '<td>' + m.address + '</td>' +
+          '<td>Aadhar: ' + m.aadhar + '<br>PAN: ' + m.pan + '</td>' +
+          '<td>' + m.bankDetails + '</td>' +
+          '<td><button class="btn-action-small btn-delete" onclick="deleteTeamMember(\'' + m.memberId + '\')">Remove Member</button></td></tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function loadAdminNotesTable() {
+      google.script.run
+        .withSuccessHandler(renderAdminNotesTable)
+        .getNotesData();
+    }
+
+    function renderAdminNotesTable(notes) {
+      const tbody = document.getElementById('adminNotesTableBody');
+      if (!tbody) return;
+
+      if (!notes || notes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No notes found in database.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      notes.forEach(note => {
+        html += '<tr>' +
+          '<td>' + note.className + '</td>' +
+          '<td><strong>' + note.subject + '</strong></td>' +
+          '<td>' + (note.topic || '-') + '</td>' +
+          '<td>' + note.title + '</td>' +
+          '<td><a href="' + (note.viewLink || '#') + '" target="_blank">View</a> | <a href="' + (note.downloadLink || '#') + '" target="_blank">Download</a></td>' +
+          '<td>' +
+            '<button class="btn-action-small btn-modify" onclick="moveAdminNote(' + note.rowIndex + ', \'UP\')">▲ Up</button>' +
+            '<button class="btn-action-small btn-modify" onclick="moveAdminNote(' + note.rowIndex + ', \'DOWN\')">▼ Down</button>' +
+          '</td>' +
+          '<td><button class="btn-action-small btn-delete" onclick="deleteAdminNote(' + note.rowIndex + ')">Delete</button></td>' +
+        '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    function handleAdminAddNote(event) {
+      if (event) event.preventDefault();
+      const noteData = {
+        className: document.getElementById('anClass').value,
+        subject: document.getElementById('anSubject').value,
+        topic: document.getElementById('anTopic').value,
+        title: document.getElementById('anTitle').value,
+        viewLink: document.getElementById('anViewLink').value,
+        downloadLink: document.getElementById('anDownloadLink').value
+      };
+      const btn = document.getElementById('anBtn');
+      const msg = document.getElementById('anMsg');
+      btn.disabled = true;
+      msg.style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          msg.className = res.success ? 'msg-box msg-success' : 'msg-box msg-error';
+          msg.innerText = res.message;
+          msg.style.display = 'block';
+          if (res.success) {
+            document.getElementById('adminAddNoteForm').reset();
+            loadAdminNotesTable();
+            loadNotesData();
+          }
+        })
+        .adminAddNote(noteData);
+    }
+
+    function moveAdminNote(rowIndex, direction) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (!res.success) alert(res.message);
+          loadAdminNotesTable();
+          loadNotesData();
+        })
+        .adminMoveNote(rowIndex, direction);
+    }
+
+    function deleteAdminNote(rowIndex) {
+      if (!confirm('Are you sure you want to delete note row #' + rowIndex + '?')) return;
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
+          loadAdminNotesTable();
+          loadNotesData();
+        })
+        .adminDeleteNote(rowIndex);
+    }
+
+    function deleteTeamMember(memberId) {
+      if (!confirm('Are you sure you want to remove team member ' + memberId + '?')) return;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
+          loadAdminDashboard();
+        })
+        .adminDeleteTeamMember(memberId);
+    }
+
+    function processReq(reqType, ticketId, action) {
+      let customNote = '';
+
+      if (action === 'MODIFY') {
+        customNote = prompt('Enter modified details/response text for Ticket ' + ticketId + ':');
+        if (customNote === null) return;
+      } else if (action === 'ASK_DETAILS') {
+        customNote = prompt('Enter the specific details requested from user for Ticket ' + ticketId + ':');
+        if (customNote === null) return;
+      } else if (action === 'REJECT') {
+        customNote = prompt('Enter rejection reason for Ticket ' + ticketId + ':');
+        if (customNote === null) return;
+      } else if (action === 'DELETE') {
+        if (!confirm('Are you sure you want to permanently delete ticket ' + ticketId + '?')) return;
+      } else if (action === 'APPROVE' && reqType === 'DELETION') {
+        if (!confirm('Approve deletion and permanently remove user for ticket ' + ticketId + ' from Google Sheets?')) return;
+      }
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          alert(res.message);
+          loadAdminDashboard();
+        })
+        .adminProcessRequest(reqType, ticketId, action, customNote);
+    }
+
+    function populateFilterDropdowns(notes) {
+      const subjectSelect = document.getElementById('subjectFilter');
+      const topicSelect = document.getElementById('topicFilter');
+      
+      subjectSelect.innerHTML = '<option value="">All Subjects</option>';
+      topicSelect.innerHTML = '<option value="">All Topics</option>';
+      
+      const subjects = new Set();
+      const topics = new Set();
+      
+      notes.forEach(note => {
+        if (note.subject) subjects.add(note.subject);
+        if (note.topic) topics.add(note.topic);
+      });
+
+      subjects.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        subjectSelect.appendChild(opt);
+      });
+
+      topics.forEach(top => {
+        const opt = document.createElement('option');
+        opt.value = top;
+        opt.textContent = top;
+        topicSelect.appendChild(opt);
+      });
+    }
+
+    function onClassChange() {
+      const classVal = document.getElementById('classFilter').value.trim().toLowerCase();
+      const subjectSelect = document.getElementById('subjectFilter');
+      const topicSelect = document.getElementById('topicFilter');
+
+      subjectSelect.innerHTML = '<option value="">All Subjects</option>';
+      topicSelect.innerHTML = '<option value="">All Topics</option>';
+
+      const filteredByClass = classVal ? allNotes.filter(n => n.className.toLowerCase() === classVal) : allNotes;
+
+      const subjects = new Set();
+      const topics = new Set();
+
+      filteredByClass.forEach(note => {
+        if (note.subject) subjects.add(note.subject);
+        if (note.topic) topics.add(note.topic);
+      });
+
+      subjects.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        subjectSelect.appendChild(opt);
+      });
+
+      topics.forEach(top => {
+        const opt = document.createElement('option');
+        opt.value = top;
+        opt.textContent = top;
+        topicSelect.appendChild(opt);
+      });
+
+      applyFilters();
+    }
+
+    function onSubjectChange() {
+      const classVal = document.getElementById('classFilter').value.trim().toLowerCase();
+      const subjectVal = document.getElementById('subjectFilter').value.trim().toLowerCase();
+      const topicSelect = document.getElementById('topicFilter');
+
+      topicSelect.innerHTML = '<option value="">All Topics</option>';
+
+      let filtered = allNotes;
+      if (classVal) {
+        filtered = filtered.filter(n => n.className.toLowerCase() === classVal);
+      }
+      if (subjectVal) {
+        filtered = filtered.filter(n => n.subject.toLowerCase() === subjectVal);
+      }
+
+      const topics = new Set();
+      filtered.forEach(note => {
+        if (note.topic) topics.add(note.topic);
+      });
+
+      topics.forEach(top => {
+        const opt = document.createElement('option');
+        opt.value = top;
+        opt.textContent = top;
+        topicSelect.appendChild(opt);
+      });
+
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const classVal = document.getElementById('classFilter').value.trim().toLowerCase();
+      const subjectVal = document.getElementById('subjectFilter').value.trim().toLowerCase();
+      const topicVal = document.getElementById('topicFilter').value.trim().toLowerCase();
+      const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      const statusEl = document.getElementById('status');
+      const container = document.getElementById('notesContainer');
+
+      if (!classVal && !subjectVal && !topicVal && !searchVal) {
+        container.innerHTML = '';
+        statusEl.style.display = 'block';
+        statusEl.innerText = '🔍 Please use the search bar or select a filter (Class, Subject, Topic) to view notes.';
+        return;
+      }
+
+      const filtered = allNotes.filter(note => {
+        const matchesClass = !classVal || note.className.toLowerCase() === classVal;
+        const matchesSubject = !subjectVal || note.subject.toLowerCase() === subjectVal;
+        const matchesTopic = !topicVal || (note.topic && note.topic.toLowerCase() === topicVal);
+        const matchesSearch = !searchVal || 
+          note.title.toLowerCase().includes(searchVal) || 
+          note.subject.toLowerCase().includes(searchVal) || 
+          note.className.toLowerCase().includes(searchVal) ||
+          (note.topic && note.topic.toLowerCase().includes(searchVal));
+
+        return matchesClass && matchesSubject && matchesTopic && matchesSearch;
+      });
+
+      renderNotes(filtered);
+      
+      if (filtered.length === 0) {
+        statusEl.style.display = 'block';
+        statusEl.innerText = 'No notes match your search or filters.';
+      } else {
+        statusEl.style.display = 'none';
+      }
+    }
+
+    function renderNotes(notes) {
+      const container = document.getElementById('notesContainer');
+      container.innerHTML = '';
+
+      notes.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'note-card';
+
+        const badgesDiv = document.createElement('div');
+        badgesDiv.className = 'badges';
+
+        const classBadge = document.createElement('span');
+        classBadge.className = 'badge badge-class';
+        classBadge.textContent = note.className || 'General';
+
+        const subjectBadge = document.createElement('span');
+        subjectBadge.className = 'badge badge-subject';
+        subjectBadge.textContent = note.subject || 'All Subjects';
+
+        badgesDiv.appendChild(classBadge);
+        badgesDiv.appendChild(subjectBadge);
+
+        if (note.topic) {
+          const topicBadge = document.createElement('span');
+          topicBadge.className = 'badge badge-topic';
+          topicBadge.textContent = note.topic;
+          badgesDiv.appendChild(topicBadge);
+        }
+
+        const title = document.createElement('div');
+        title.className = 'note-title';
+        title.textContent = note.title;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'card-actions';
+
+        const viewBtn = document.createElement('a');
+        viewBtn.className = 'btn btn-view';
+        viewBtn.href = note.viewLink && note.viewLink !== '#' ? note.viewLink : '#';
+        viewBtn.target = '_blank';
+        viewBtn.rel = 'noopener noreferrer';
+        viewBtn.textContent = '👁 View';
+
+        const downloadBtn = document.createElement('a');
+        downloadBtn.className = 'btn btn-download';
+        downloadBtn.href = note.downloadLink && note.downloadLink !== '#' ? note.downloadLink : '#';
+        downloadBtn.target = '_blank';
+        downloadBtn.rel = 'noopener noreferrer';
+        downloadBtn.onclick = onDownloadClick;
+        downloadBtn.textContent = '⬇ Download';
+
+        actionsDiv.appendChild(viewBtn);
+        actionsDiv.appendChild(downloadBtn);
+
+        card.appendChild(badgesDiv);
+        card.appendChild(title);
+        card.appendChild(actionsDiv);
+
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
